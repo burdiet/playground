@@ -110,10 +110,59 @@
       box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.18);
     }
 
-    .row {
+    /* Keep the destination field strictly single-line with horizontal scroll for long URLs */
+    #dest {
+      white-space: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .input-line {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-line input {
+      min-width: 0;
+      padding-right: 44px;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: none;
+      color: var(--accent);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      place-items: center;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+
+    .clear-btn:hover {
+      background: rgba(0, 184, 148, 0.1);
+    }
+
+    .clear-btn.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .clear-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     .actions {
@@ -123,7 +172,7 @@
       margin-top: 12px;
     }
 
-    button, a.buttonish {
+    button:not(.clear-btn), a.buttonish {
       border: none;
       border-radius: 12px;
       padding: 12px 14px;
@@ -144,7 +193,7 @@
       box-shadow: none;
     }
 
-    button:hover, a.buttonish:hover {
+    button:not(.clear-btn):hover, a.buttonish:hover {
       transform: translateY(-1px);
     }
 
@@ -262,18 +311,19 @@
     <div class="content">
       <section class="card">
         <h2>Build a Link</h2>
-        <div class="row">
-          <div>
-            <label for="dest">Destination</label>
+        <div>
+          <label for="dest">Destination</label>
+          <div class="input-line">
             <input id="dest" name="dest" value="https://example.com">
+            <button id="clearDest" class="clear-btn" type="button" aria-label="Clear destination">×</button>
           </div>
-          <div>
-            <label for="target">Target</label>
-            <select id="target" name="target">
-              <option value="_self">Same view (target=_self)</option>
-              <option value="_blank">New view (target=_blank)</option>
-            </select>
-          </div>
+        </div>
+        <div>
+          <label for="target">Target</label>
+          <select id="target" name="target">
+            <option value="_self">Same view (target=_self)</option>
+            <option value="_blank">New view (target=_blank)</option>
+          </select>
         </div>
 
         <div class="actions">
@@ -326,6 +376,7 @@
     const destInput = document.getElementById("dest");
     const targetSelect = document.getElementById("target");
     const liveLink = document.getElementById("liveLink");
+    const clearBtn = document.getElementById("clearDest");
     const linkPreview = document.getElementById("linkPreview");
     const logBox = document.getElementById("log");
     const presets = document.querySelectorAll(".preset");
@@ -336,6 +387,10 @@
 
     const eventsToLog = ["visibilitychange", "pagehide", "pageshow", "blur", "focus"];
     const startTime = performance.now();
+
+    function toggleClear() {
+      clearBtn.classList.toggle("is-visible", !!destInput.value);
+    }
 
     function fmt(time) {
       return (time / 1000).toFixed(2).padStart(6, "0");
@@ -356,6 +411,7 @@
       liveLink.href = url || "#";
       liveLink.target = target;
       linkPreview.textContent = `<a href="${url}" target="${target}">${url}</a>`;
+      toggleClear();
     }
 
     function setPreset(url) {
@@ -376,6 +432,12 @@
 
     destInput.addEventListener("input", updateLink);
     targetSelect.addEventListener("change", updateLink);
+    clearBtn.addEventListener("click", () => {
+      destInput.value = "";
+      updateLink();
+      log("Destination cleared");
+      destInput.focus();
+    });
 
     presets.forEach((item) => {
       item.addEventListener("click", () => setPreset(item.dataset.url));

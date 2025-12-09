@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>In-App Redirect Playground</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap");
+
+    :root {
+      --bg: #f5f3ef;
+      --panel: #0f172a;
+      --panel-soft: #15213b;
+      --accent: #00b894;
+      --muted: #9ba5b6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", "SF Pro Display", "Segoe UI", "Helvetica Neue", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #e8fff3 0, #f5f3ef 38%, #e8f3ff 100%);
+      color: var(--panel);
+      display: grid;
+      place-items: center;
+      padding: 32px 16px;
+    }
+
+    main {
+      width: min(1100px, 100%);
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 25px 70px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    header {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, #0f172a, #14213d);
+      color: white;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.8);
+      max-width: 780px;
+    }
+
+    .content {
+      padding: 24px 28px 30px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      color: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: var(--panel-soft);
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.18);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button, a.buttonish {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: white;
+      background: linear-gradient(120deg, #00b894, #00a896);
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      box-shadow: 0 12px 24px rgba(0, 184, 148, 0.25);
+      display: inline-block;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      box-shadow: none;
+    }
+
+    button:hover, a.buttonish:hover {
+      transform: translateY(-1px);
+    }
+
+    .link-preview {
+      margin: 16px 0 8px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.02);
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 14px;
+      word-break: break-all;
+    }
+
+    .preset-group {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+    }
+
+    .preset {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.04);
+      color: white;
+      cursor: pointer;
+      transition: border 120ms ease, transform 120ms ease;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.35;
+    }
+
+    .preset:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .preset .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0, 184, 148, 0.15);
+      color: var(--accent);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .preset .preset-url {
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .log {
+      margin-top: 12px;
+      background: #0b1222;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 140px;
+      max-height: 220px;
+      overflow: auto;
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: #c7d2fe;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .info {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      display: grid;
+      gap: 12px;
+    }
+
+    .info h3 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .info .item {
+      padding: 12px;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      word-break: break-all;
+      font-size: 13px;
+    }
+
+    .note {
+      margin-top: 6px;
+      color: #475467;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>In-App Web Redirect Playground</h1>
+      <p>Drop a destination URL or deep link, pick how to open it, and tap the anchor to see what your in-app browser does with different redirect styles.</p>
+    </header>
+
+    <div class="content">
+      <section class="card">
+        <h2>Build a Link</h2>
+        <div class="row">
+          <div>
+            <label for="dest">Destination</label>
+            <input id="dest" name="dest" value="https://example.com">
+          </div>
+          <div>
+            <label for="target">Target</label>
+            <select id="target" name="target">
+              <option value="_self">Same view (target=_self)</option>
+              <option value="_blank">New view (target=_blank)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="anchorTrigger">Tap the anchor</button>
+          <button id="assign">location.assign()</button>
+          <button id="replace">location.replace()</button>
+          <button id="popup" class="secondary">window.open()</button>
+        </div>
+
+        <div class="link-preview" id="linkPreview"></div>
+        <a id="liveLink" class="buttonish" href="https://example.com" target="_self" rel="noreferrer">Anchor: open destination</a>
+
+        <div class="preset-group" aria-label="quick presets">
+          <div class="preset" data-url="https://example.com">
+            <div class="pill">Direct</div>
+            <div class="preset-url">example.com</div>
+          </div>
+          <div class="preset" data-url="https://httpbin.org/redirect-to?url=https%3A%2F%2Fexample.com">
+            <div class="pill">302 hop</div>
+            <div class="preset-url">httpbin redirect-to → example.com</div>
+          </div>
+          <div class="preset" data-url="https://httpbin.org/redirect/3">
+            <div class="pill">Multi-hop</div>
+            <div class="preset-url">httpbin /redirect/3</div>
+          </div>
+          <div class="preset" data-url="myapp://open/product/42">
+            <div class="pill">Deep link</div>
+            <div class="preset-url">myapp://open/product/42</div>
+          </div>
+          <div class="preset" data-url="intent://open#Intent;scheme=myapp;package=com.example;end">
+            <div class="pill">Android intent</div>
+            <div class="preset-url">intent://open#Intent;...</div>
+          </div>
+        </div>
+
+        <div class="log" id="log" aria-live="polite"></div>
+      </section>
+
+      <section class="info">
+        <h3>Current Page Signals</h3>
+        <div class="item" id="locationInfo"></div>
+        <div class="item" id="uaInfo"></div>
+        <div class="item" id="referrerInfo"></div>
+        <div class="note">Useful to confirm how the in-app webview reports referrers, user agents, and location after a hop.</div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const destInput = document.getElementById("dest");
+    const targetSelect = document.getElementById("target");
+    const liveLink = document.getElementById("liveLink");
+    const linkPreview = document.getElementById("linkPreview");
+    const logBox = document.getElementById("log");
+    const presets = document.querySelectorAll(".preset");
+
+    const locationInfo = document.getElementById("locationInfo");
+    const uaInfo = document.getElementById("uaInfo");
+    const referrerInfo = document.getElementById("referrerInfo");
+
+    const eventsToLog = ["visibilitychange", "pagehide", "pageshow", "blur", "focus"];
+    const startTime = performance.now();
+
+    function fmt(time) {
+      return (time / 1000).toFixed(2).padStart(6, "0");
+    }
+
+    function log(msg) {
+      const time = fmt(performance.now() - startTime);
+      const line = `[${time}s] ${msg}`;
+      const div = document.createElement("div");
+      div.textContent = line;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function updateLink() {
+      const url = destInput.value.trim();
+      const target = targetSelect.value;
+      liveLink.href = url || "#";
+      liveLink.target = target;
+      linkPreview.textContent = `<a href="${url}" target="${target}">${url}</a>`;
+    }
+
+    function setPreset(url) {
+      destInput.value = url;
+      updateLink();
+      log(`Preset applied → ${url}`);
+    }
+
+    function setInfo() {
+      locationInfo.textContent = `location: ${window.location.href}`;
+      uaInfo.textContent = `userAgent: ${navigator.userAgent}`;
+      referrerInfo.textContent = `document.referrer: ${document.referrer || "n/a"}`;
+    }
+
+    updateLink();
+    setInfo();
+    log("Page ready. Pick a destination and tap the anchor.");
+
+    destInput.addEventListener("input", updateLink);
+    targetSelect.addEventListener("change", updateLink);
+
+    presets.forEach((item) => {
+      item.addEventListener("click", () => setPreset(item.dataset.url));
+    });
+
+    document.getElementById("anchorTrigger").addEventListener("click", () => {
+      log(`Anchor tap → ${destInput.value} (${targetSelect.value})`);
+      liveLink.click();
+    });
+
+    document.getElementById("assign").addEventListener("click", () => {
+      log(`window.location.assign(${destInput.value})`);
+      window.location.assign(destInput.value);
+    });
+
+    document.getElementById("replace").addEventListener("click", () => {
+      log(`window.location.replace(${destInput.value})`);
+      window.location.replace(destInput.value);
+    });
+
+    document.getElementById("popup").addEventListener("click", () => {
+      log(`window.open(${destInput.value}, ${targetSelect.value})`);
+      window.open(destInput.value, targetSelect.value);
+    });
+
+    eventsToLog.forEach((evt) => {
+      window.addEventListener(evt, () => log(`event: ${evt} (visibility: ${document.visibilityState})`));
+    });
+  </script>
+</body>
+</html>
